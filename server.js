@@ -1,36 +1,41 @@
-console.log("NEW BUILD V2");
 import express from "express";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
 app.use(express.json());
 
-// HEALTH
+// Gemini setup
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Health route
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
 });
 
-// TEST
-app.get("/api/test", (req, res) => {
-  res.json({ success: true });
-});
+// Chat API
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
 
-// FINAL CHAT ROUTE (ONLY ONE — NO CONFUSION)
-app.post("/api/chat", (req, res) => {
-  const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
 
-  if (!message) {
-    return res.status(400).json({ error: "Message is required" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const result = await model.generateContent(message);
+    const response = result.response.text();
+
+    res.json({ reply: response });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
   }
-
-  return res.json({
-    reply: `You said: ${message}`,
-  });
 });
 
-// PORT (VERY IMPORTANT FOR CLOUD RUN)
+// Port
 const PORT = process.env.PORT || 8080;
-
-// LISTEN (VERY IMPORTANT)
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
