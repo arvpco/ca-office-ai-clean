@@ -1,22 +1,36 @@
+console.log("NEW BUILD V2");
 import express from "express";
 
 const app = express();
 app.use(express.json());
 
-// HEALTH ROUTE
+// HEALTH
 app.get("/", (req, res) => {
-  res.status(200).send("Server is running 🚀");
+  res.send("Server is running 🚀");
 });
 
-// TEST API
+// TEST
 app.get("/api/test", (req, res) => {
   res.json({ success: true });
 });
 
-// 🔴 FIXED PORT
-const PORT = Number(process.env.PORT) || 8080;
+// FINAL CHAT ROUTE (ONLY ONE — NO CONFUSION)
+app.post("/api/chat", (req, res) => {
+  const { message } = req.body;
 
-// 🔴 FIXED LISTEN
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  if (!message) {
+    return res.status(400).json({ error: "Message is required" });
+  }
+
+  return res.json({
+    reply: `You said: ${message}`,
+  });
+});
+
+// PORT (VERY IMPORTANT FOR CLOUD RUN)
+const PORT = process.env.PORT || 8080;
+
+// LISTEN (VERY IMPORTANT)
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
