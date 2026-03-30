@@ -4,10 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const app = express();
 app.use(express.json());
 
-// Gemini setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Health route
+// Health route (MUST be first)
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
 });
@@ -21,6 +18,9 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
+    // 🔴 Move inside route (important)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const result = await model.generateContent(message);
@@ -29,8 +29,8 @@ app.post("/api/chat", async (req, res) => {
     res.json({ reply: response });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error("ERROR:", error);
+    res.status(500).json({ error: "AI failed" });
   }
 });
 
